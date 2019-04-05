@@ -1,5 +1,9 @@
 package org.androidtown.datacollection;
 
+import android.app.Activity;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -11,6 +15,15 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+    /* For Database */
+    String databaseName = "DATA_COLLECTION";
+    String tableName = "SENSOR_DATA";
+    boolean databaseCreated = false;
+    boolean tableCreated = false;
+
+    SQLiteDatabase db;
+
+    /* For Sensors */
     private SensorManager manager = null;
 
     private Sensor magnetometer = null;
@@ -42,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        createDatabase(databaseName);
+        createTable(tableName);
+
         manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         magnetometer = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -68,13 +84,63 @@ public class MainActivity extends AppCompatActivity {
         rotListener = new RotationVectorListener();
         manager.registerListener(rotListener, rotationVector, SensorManager.SENSOR_DELAY_NORMAL);
 
-        Button button = findViewById(R.id.button);
+        Button button = findViewById(R.id.button1);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveSensorData();
+                saveSensorData(tableName);
+                Cursor c = db.rawQuery("select * from " + tableName, null);
+                int recordCount = c.getCount();
+                Log.d("Log", "cursor count : " + recordCount + "\n");
+                for (int i = 0; i< recordCount; i++) {
+                    c.moveToNext();
+                    int _id = c.getInt(0);
+                    double _magX = c.getDouble(1);
+                    double _magY = c.getDouble(2);
+                    double _magZ = c.getDouble(3);
+                    double _accX = c.getDouble(4);
+                    double _accY = c.getDouble(5);
+                    double _accZ = c.getDouble(6);
+
+                    Log.d("Log", "Record #" + i + ": "
+                            + "id " + _id + "  "
+                            + _magX +", " + _magY + ", " + _magZ + ", "
+                            + _accX +", " + _accY + ", " + _accZ);
+                }
+                c.close();
             }
         });
+    }
+
+    private void createDatabase(String name) {
+        Log.d("Log","creating database ["+name+"]");
+        try {
+            db = openOrCreateDatabase(
+                    name,
+                    Activity.MODE_PRIVATE,
+                    null);
+
+            databaseCreated = true;
+            Log.d("Log","database has been created.");
+        } catch(Exception e) {
+            e.printStackTrace();
+            Log.d("Log","database has not been created.");
+        }
+    }
+
+    private void createTable(String name) {
+        Log.d("Log", "creating table ["+name+"]");
+        db.execSQL("create table if not exists " + name + "(" +
+                "_id integer PRIMARY KEY autoincrement, " +
+                "mag_x real, mag_y real, mag_z real," +
+                "acc_x real, acc_y real, acc_z real," +
+                "gyro_x real, gyro_y real, gyro_z real," +
+                "grav_x real, grav_y real, grav_z real," +
+                "lin_x real, lin_y real, lin_z real," +
+                "rot_x real, rot_y real, rot_z real);");
+
+        tableCreated = true;
+        Log.d("Log", "table has been created.");
     }
 
     private class MagnetometerListener implements SensorEventListener {
@@ -172,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void saveSensorData() {
+    private void saveSensorData(String name) {
         Log.v("Mag", "[X]:" + String.format("%.4f", magX)
         + " [Y]:" + String.format("%.4f", magY)
         + " [Z]:" + String.format("%.4f", magZ));
@@ -191,5 +257,30 @@ public class MainActivity extends AppCompatActivity {
         Log.v("Rot", "[X]:" + String.format("%.4f", rotX)
                 + " [Y]:" + String.format("%.4f", rotY)
                 + " [Z]:" + String.format("%.4f", rotZ));
+
+        Log.d("Log", "inserting records using parameters.");
+        ContentValues recordValues = new ContentValues();
+
+        recordValues.put("mag_x", magX);
+        recordValues.put("mag_y", magY);
+        recordValues.put("mag_z", magZ);
+        recordValues.put("acc_x", accX);
+        recordValues.put("acc_y", accY);
+        recordValues.put("acc_z", accZ);
+        recordValues.put("gyro_x", gyroX);
+        recordValues.put("gyro_y", gyroY);
+        recordValues.put("gyro_z", gyroZ);
+        recordValues.put("grav_x", gravX);
+        recordValues.put("grav_y", gravY);
+        recordValues.put("grav_z", gravZ);
+        recordValues.put("lin_x", linX);
+        recordValues.put("lin_y", linY);
+        recordValues.put("lin_z", linZ);
+        recordValues.put("rot_x", rotX);
+        recordValues.put("rot_y", rotY);
+        recordValues.put("rot_z", rotZ);
+
+        db.insert(name, null, recordValues);
+        Log.d("saveSensorData", "insertion complete");
     }
 }
