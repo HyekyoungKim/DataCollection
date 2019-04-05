@@ -1,7 +1,9 @@
 package org.androidtown.datacollection;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
@@ -193,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createTable(String name) {
-         db.execSQL("drop table if exists " + name);
+        // db.execSQL("drop table if exists " + name);
         Log.d("Log", "creating table ["+name+"]");
         db.execSQL("create table if not exists " + name + "(" +
                 "_id integer PRIMARY KEY autoincrement, " +
@@ -304,28 +306,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void saveSensorData(String tbName, String locId) {
-        Log.v("Mag", "[X]:" + String.format("%.4f", magX)
-        + " [Y]:" + String.format("%.4f", magY)
-        + " [Z]:" + String.format("%.4f", magZ));
-        Log.v("Acc", "[X]:" + String.format("%.4f", accX)
-                + " [Y]:" + String.format("%.4f", accY)
-                + " [Z]:" + String.format("%.4f", accZ));
-        Log.v("Gyro", "[X]:" + String.format("%.4f", gyroX)
-                + " [Y]:" + String.format("%.4f", gyroY)
-                + " [Z]:" + String.format("%.4f", gyroZ));
-        Log.v("Grav", "[X]:" + String.format("%.4f", gravX)
-                + " [Y]:" + String.format("%.4f", gravY)
-                + " [Z]:" + String.format("%.4f", gravZ));
-        Log.v("Lin", "[X]:" + String.format("%.4f", linX)
-                + " [Y]:" + String.format("%.4f", linY)
-                + " [Z]:" + String.format("%.4f", linZ));
-        Log.v("Rot", "[X]:" + String.format("%.4f", rotX)
-                + " [Y]:" + String.format("%.4f", rotY)
-                + " [Z]:" + String.format("%.4f", rotZ));
-
+    private void saveSensorData(final String tbName, final String locId) {
         Log.d("Log", "inserting records using parameters.");
-        ContentValues recordValues = new ContentValues();
+        final ContentValues recordValues = new ContentValues();
 
         recordValues.put("location", locId);
         recordValues.put("mag_x", magX);
@@ -347,7 +330,34 @@ public class MainActivity extends AppCompatActivity {
         recordValues.put("rot_y", rotY);
         recordValues.put("rot_z", rotZ);
 
-        db.insert(tbName, null, recordValues);
-        Log.d("saveSensorData", "insertion complete");
+        String SQL = "select * from " + tbName + " where location=" + locId;
+        Cursor c = db.rawQuery(SQL, null);
+        if (c.moveToFirst()) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Duplicate Location");
+            builder.setMessage("Do you want to replace the existing data?");
+            builder.setIcon(android.R.drawable.ic_dialog_alert);
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    db.update(tbName,
+                            recordValues,
+                            "location = ?",
+                            new String[] {locId});
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            c.close();
+        } else {
+            db.insert(tbName, null, recordValues);
+            Log.d("saveSensorData", "insertion complete");
+        }
     }
 }
