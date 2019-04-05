@@ -128,6 +128,14 @@ public class MainActivity extends AppCompatActivity {
                 c.close();
             }
         });
+
+        Button button3 = findViewById(R.id.button3);
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db.delete(tableName, null, null);
+            }
+        });
     }
 
     private void createDatabase(String name) {
