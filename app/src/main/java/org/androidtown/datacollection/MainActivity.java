@@ -13,6 +13,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     /* For Database */
@@ -22,6 +25,9 @@ public class MainActivity extends AppCompatActivity {
     boolean tableCreated = false;
 
     SQLiteDatabase db;
+
+    /* For Showing Table Contents */
+    private TextView contents;
 
     /* For Sensors */
     private SensorManager manager = null;
@@ -84,14 +90,23 @@ public class MainActivity extends AppCompatActivity {
         rotListener = new RotationVectorListener();
         manager.registerListener(rotListener, rotationVector, SensorManager.SENSOR_DELAY_NORMAL);
 
-        Button button = findViewById(R.id.button1);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button button1 = findViewById(R.id.button1);
+        button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 saveSensorData(tableName);
+            }
+        });
+
+        contents = findViewById(R.id.contents);
+        Button button2 = findViewById(R.id.button2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 Cursor c = db.rawQuery("select * from " + tableName, null);
                 int recordCount = c.getCount();
                 Log.d("Log", "cursor count : " + recordCount + "\n");
+                contents.setText("");
                 for (int i = 0; i< recordCount; i++) {
                     c.moveToNext();
                     int _id = c.getInt(0);
@@ -102,10 +117,13 @@ public class MainActivity extends AppCompatActivity {
                     double _accY = c.getDouble(5);
                     double _accZ = c.getDouble(6);
 
-                    Log.d("Log", "Record #" + i + ": "
-                            + "id " + _id + "  "
-                            + _magX +", " + _magY + ", " + _magZ + ", "
-                            + _accX +", " + _accY + ", " + _accZ);
+                    contents.append("\n\nRecord #" + i + "\n"
+                            + "magX: " + String.format("%.2f", _magX) +", "
+                            + "magY: " + String.format("%.2f", _magY) +", "
+                            + "magZ: " + String.format("%.2f", _magZ) +", "
+                            + "accX: " + String.format("%.2f", _accX) +", "
+                            + "accY: " + String.format("%.2f", _accY) +", "
+                            + "accZ: " + String.format("%.2f", _accZ));
                 }
                 c.close();
             }
