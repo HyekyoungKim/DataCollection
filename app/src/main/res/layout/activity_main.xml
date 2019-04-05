@@ -4,18 +4,27 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <EditText
+        android:id="@+id/location"
+        android:inputType="text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Enter the location ID"
+        android:layout_gravity="center"
+        android:gravity="center"/>
+
     <Button
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Collect Data!"
+        android:text="Collect Data Here!"
         android:layout_gravity="center" />
 
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show The Table!"
+        android:text="Show Me The Data!"
         android:layout_gravity="center" />
     <Button
         android:id="@+id/button3"

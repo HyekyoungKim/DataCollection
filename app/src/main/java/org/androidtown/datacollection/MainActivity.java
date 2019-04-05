@@ -13,7 +13,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -25,9 +27,6 @@ public class MainActivity extends AppCompatActivity {
     boolean tableCreated = false;
 
     SQLiteDatabase db;
-
-    /* For Showing Table Contents */
-    private TextView contents;
 
     /* For Sensors */
     private SensorManager manager = null;
@@ -90,15 +89,23 @@ public class MainActivity extends AppCompatActivity {
         rotListener = new RotationVectorListener();
         manager.registerListener(rotListener, rotationVector, SensorManager.SENSOR_DELAY_NORMAL);
 
+        final EditText locationId = findViewById(R.id.location);
         Button button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveSensorData(tableName);
+                String locId = locationId.getText().toString().trim();
+                if(locId.getBytes().length <= 0) {
+                    Toast.makeText(getApplicationContext(),
+                            "Enter the location ID", Toast.LENGTH_SHORT).show();
+                } else {
+                    saveSensorData(tableName, locId);
+                    locationId.setText(null);
+                }
             }
         });
 
-        contents = findViewById(R.id.contents);
+        final TextView contents = findViewById(R.id.contents);
         Button button2 = findViewById(R.id.button2);
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,21 +116,52 @@ public class MainActivity extends AppCompatActivity {
                 contents.setText("");
                 for (int i = 0; i< recordCount; i++) {
                     c.moveToNext();
-                    int _id = c.getInt(0);
-                    double _magX = c.getDouble(1);
-                    double _magY = c.getDouble(2);
-                    double _magZ = c.getDouble(3);
-                    double _accX = c.getDouble(4);
-                    double _accY = c.getDouble(5);
-                    double _accZ = c.getDouble(6);
+                    String _location = c.getString(1);
+                    double _magX = c.getDouble(2);
+                    double _magY = c.getDouble(3);
+                    double _magZ = c.getDouble(4);
+                    double _accX = c.getDouble(5);
+                    double _accY = c.getDouble(6);
+                    double _accZ = c.getDouble(7);
+                    double _gyroX = c.getDouble(8);
+                    double _gyroY = c.getDouble(9);
+                    double _gyroZ = c.getDouble(10);
+                    double _gravX = c.getDouble(11);
+                    double _gravY = c.getDouble(12);
+                    double _gravZ = c.getDouble(13);
+                    double _linX = c.getDouble(14);
+                    double _linY = c.getDouble(15);
+                    double _linZ = c.getDouble(16);
+                    double _rotX = c.getDouble(17);
+                    double _rotY = c.getDouble(18);
+                    double _rotZ = c.getDouble(19);
 
-                    contents.append("\n\nRecord #" + i + "\n"
-                            + "magX: " + String.format("%.2f", _magX) +", "
-                            + "magY: " + String.format("%.2f", _magY) +", "
-                            + "magZ: " + String.format("%.2f", _magZ) +", "
-                            + "accX: " + String.format("%.2f", _accX) +", "
-                            + "accY: " + String.format("%.2f", _accY) +", "
-                            + "accZ: " + String.format("%.2f", _accZ));
+                    contents.append("\nRecord #" + i + "\n"
+                            + "Location ID: " + _location + "\n"
+                            + "< Magnetometer >\n"
+                            + "X: " + String.format(Locale.KOREA,"%.2f", _magX) + ", "
+                            + "Y: " + String.format(Locale.KOREA,"%.2f", _magY) + ", "
+                            + "Z: " + String.format(Locale.KOREA,"%.2f", _magZ) + "\n"
+                            + "< Accelerometer >\n"
+                            + "X: " + String.format(Locale.KOREA,"%.2f", _accX) + ", "
+                            + "Y: " + String.format(Locale.KOREA,"%.2f", _accY) + ", "
+                            + "Z: " + String.format(Locale.KOREA,"%.2f", _accZ) + "\n"
+                            + "< Gyroscope >\n"
+                            + "X: " + String.format(Locale.KOREA,"%.2f", _gyroX) + ", "
+                            + "Y: " + String.format(Locale.KOREA,"%.2f", _gyroY) + ", "
+                            + "Z: " + String.format(Locale.KOREA,"%.2f", _gyroZ) + "\n"
+                            + "< Gravity >\n"
+                            + "X: " + String.format(Locale.KOREA,"%.2f", _gravX) + ", "
+                            + "Y: " + String.format(Locale.KOREA,"%.2f", _gravY) + ", "
+                            + "Z: " + String.format(Locale.KOREA,"%.2f", _gravZ) + "\n"
+                            + "< Linear Accelerometer >\n"
+                            + "X: " + String.format(Locale.KOREA,"%.2f", _linX) + ", "
+                            + "Y: " + String.format(Locale.KOREA,"%.2f", _linY) + ", "
+                            + "Z: " + String.format(Locale.KOREA,"%.2f", _linZ) + "\n"
+                            + "< Rotation Vector >\n"
+                            + "X: " + String.format(Locale.KOREA,"%.2f", _rotX) + ", "
+                            + "Y: " + String.format(Locale.KOREA,"%.2f", _rotY) + ", "
+                            + "Z: " + String.format(Locale.KOREA,"%.2f", _rotZ) + "\n");
                 }
                 c.close();
             }
@@ -155,9 +193,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createTable(String name) {
+         db.execSQL("drop table if exists " + name);
         Log.d("Log", "creating table ["+name+"]");
         db.execSQL("create table if not exists " + name + "(" +
                 "_id integer PRIMARY KEY autoincrement, " +
+                "location text," +
                 "mag_x real, mag_y real, mag_z real," +
                 "acc_x real, acc_y real, acc_z real," +
                 "gyro_x real, gyro_y real, gyro_z real," +
@@ -264,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void saveSensorData(String name) {
+    private void saveSensorData(String tbName, String locId) {
         Log.v("Mag", "[X]:" + String.format("%.4f", magX)
         + " [Y]:" + String.format("%.4f", magY)
         + " [Z]:" + String.format("%.4f", magZ));
@@ -287,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Log", "inserting records using parameters.");
         ContentValues recordValues = new ContentValues();
 
+        recordValues.put("location", locId);
         recordValues.put("mag_x", magX);
         recordValues.put("mag_y", magY);
         recordValues.put("mag_z", magZ);
@@ -306,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
         recordValues.put("rot_y", rotY);
         recordValues.put("rot_z", rotZ);
 
-        db.insert(name, null, recordValues);
+        db.insert(tbName, null, recordValues);
         Log.d("saveSensorData", "insertion complete");
     }
 }
