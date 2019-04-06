@@ -24,7 +24,8 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
     /* For Database */
     String databaseName = "DATA_COLLECTION";
-    String tableName = "SENSOR_DATA";
+    String rawTableName = "SENSOR_DATA";
+    String convertedTableName = "CONVERTED_DATA";
     boolean databaseCreated = false;
     boolean tableCreated = false;
 
@@ -37,33 +38,17 @@ public class MainActivity extends AppCompatActivity {
     private SensorEventListener magListener;
     private double magX, magY, magZ;
 
-    private Sensor accelerometer = null;
-    private SensorEventListener accListener;
-    private double accX, accY, accZ;
-
-    private Sensor gyroscope = null;
-    private SensorEventListener gyroListener;
-    private double gyroX, gyroY, gyroZ;
-
     private Sensor gravity = null;
     private SensorEventListener gravListener;
     private double gravX, gravY, gravZ;
-
-    private Sensor linearAccelerometer = null;
-    private SensorEventListener linListener;
-    private double linX, linY, linZ;
-
-    private Sensor rotationVector = null;
-    private SensorEventListener rotListener;
-    private double rotX, rotY, rotZ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        createDatabase(databaseName);
-        createTable(tableName);
+        createDatabase();
+        createTable();
 
         manager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -71,25 +56,9 @@ public class MainActivity extends AppCompatActivity {
         magListener = new MagnetometerListener();
         manager.registerListener(magListener, magnetometer, SensorManager.SENSOR_DELAY_NORMAL);
 
-        accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        accListener = new AccelerometerListener();
-        manager.registerListener(accListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-
-        gyroscope = manager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        gyroListener = new GyroscopeListener();
-        manager.registerListener(gyroListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-
         gravity = manager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         gravListener = new GravityListener();
         manager.registerListener(gravListener, gravity, SensorManager.SENSOR_DELAY_NORMAL);
-
-        linearAccelerometer = manager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        linListener = new LinearAccelerometerListener();
-        manager.registerListener(linListener, linearAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-
-        rotationVector = manager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        rotListener = new RotationVectorListener();
-        manager.registerListener(rotListener, rotationVector, SensorManager.SENSOR_DELAY_NORMAL);
 
         final EditText locationId = findViewById(R.id.location);
         Button button1 = findViewById(R.id.button1);
@@ -101,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             "Enter the location ID", Toast.LENGTH_SHORT).show();
                 } else {
-                    saveSensorData(tableName, locId);
+                    saveSensorData(locId);
                     locationId.setText(null);
                 }
             }
@@ -112,31 +81,26 @@ public class MainActivity extends AppCompatActivity {
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cursor c = db.rawQuery("select * from " + tableName, null);
+                Cursor c = db.rawQuery(
+                        "select location, mag_x, mag_y, mag_z, " +
+                                "grav_x, grav_y, grav_z, vertical, horizontal, magnitude " +
+                        "from " + rawTableName + " join " + convertedTableName +
+                        " using(location)", null);
                 int recordCount = c.getCount();
                 Log.d("Log", "cursor count : " + recordCount + "\n");
                 contents.setText("");
                 for (int i = 0; i< recordCount; i++) {
                     c.moveToNext();
-                    String _location = c.getString(1);
-                    double _magX = c.getDouble(2);
-                    double _magY = c.getDouble(3);
-                    double _magZ = c.getDouble(4);
-                    double _accX = c.getDouble(5);
-                    double _accY = c.getDouble(6);
-                    double _accZ = c.getDouble(7);
-                    double _gyroX = c.getDouble(8);
-                    double _gyroY = c.getDouble(9);
-                    double _gyroZ = c.getDouble(10);
-                    double _gravX = c.getDouble(11);
-                    double _gravY = c.getDouble(12);
-                    double _gravZ = c.getDouble(13);
-                    double _linX = c.getDouble(14);
-                    double _linY = c.getDouble(15);
-                    double _linZ = c.getDouble(16);
-                    double _rotX = c.getDouble(17);
-                    double _rotY = c.getDouble(18);
-                    double _rotZ = c.getDouble(19);
+                    String _location = c.getString(0);
+                    double _magX = c.getDouble(1);
+                    double _magY = c.getDouble(2);
+                    double _magZ = c.getDouble(3);
+                    double _gravX = c.getDouble(4);
+                    double _gravY = c.getDouble(5);
+                    double _gravZ = c.getDouble(6);
+                    double _vertical = c.getDouble(7);
+                    double _horizontal = c.getDouble(8);
+                    double _magnitude = c.getDouble(9);
 
                     contents.append("\nRecord #" + i + "\n"
                             + "Location ID: " + _location + "\n"
@@ -144,26 +108,14 @@ public class MainActivity extends AppCompatActivity {
                             + "X: " + String.format(Locale.KOREA,"%.2f", _magX) + ", "
                             + "Y: " + String.format(Locale.KOREA,"%.2f", _magY) + ", "
                             + "Z: " + String.format(Locale.KOREA,"%.2f", _magZ) + "\n"
-                            + "< Accelerometer >\n"
-                            + "X: " + String.format(Locale.KOREA,"%.2f", _accX) + ", "
-                            + "Y: " + String.format(Locale.KOREA,"%.2f", _accY) + ", "
-                            + "Z: " + String.format(Locale.KOREA,"%.2f", _accZ) + "\n"
-                            + "< Gyroscope >\n"
-                            + "X: " + String.format(Locale.KOREA,"%.2f", _gyroX) + ", "
-                            + "Y: " + String.format(Locale.KOREA,"%.2f", _gyroY) + ", "
-                            + "Z: " + String.format(Locale.KOREA,"%.2f", _gyroZ) + "\n"
                             + "< Gravity >\n"
                             + "X: " + String.format(Locale.KOREA,"%.2f", _gravX) + ", "
                             + "Y: " + String.format(Locale.KOREA,"%.2f", _gravY) + ", "
                             + "Z: " + String.format(Locale.KOREA,"%.2f", _gravZ) + "\n"
-                            + "< Linear Accelerometer >\n"
-                            + "X: " + String.format(Locale.KOREA,"%.2f", _linX) + ", "
-                            + "Y: " + String.format(Locale.KOREA,"%.2f", _linY) + ", "
-                            + "Z: " + String.format(Locale.KOREA,"%.2f", _linZ) + "\n"
-                            + "< Rotation Vector >\n"
-                            + "X: " + String.format(Locale.KOREA,"%.2f", _rotX) + ", "
-                            + "Y: " + String.format(Locale.KOREA,"%.2f", _rotY) + ", "
-                            + "Z: " + String.format(Locale.KOREA,"%.2f", _rotZ) + "\n");
+                            + "< Converted Magnetic Field >\n"
+                            + "Vertical: " + String.format(Locale.KOREA,"%.2f", _vertical) + ", "
+                            + "Horizontal: " + String.format(Locale.KOREA,"%.2f", _horizontal) + ", "
+                            + "Magnitude: " + String.format(Locale.KOREA,"%.2f", _magnitude) + "\n");
                 }
                 c.close();
             }
@@ -173,16 +125,17 @@ public class MainActivity extends AppCompatActivity {
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                db.delete(tableName, null, null);
+                db.delete(rawTableName, null, null);
+                db.delete(convertedTableName, null, null);
             }
         });
     }
 
-    private void createDatabase(String name) {
-        Log.d("Log","creating database ["+name+"]");
+    private void createDatabase() {
+        Log.d("Log","creating database ["+databaseName+"]");
         try {
             db = openOrCreateDatabase(
-                    name,
+                    databaseName,
                     Activity.MODE_PRIVATE,
                     null);
 
@@ -194,21 +147,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void createTable(String name) {
-        // db.execSQL("drop table if exists " + name);
-        Log.d("Log", "creating table ["+name+"]");
-        db.execSQL("create table if not exists " + name + "(" +
+    private void createTable() {
+        db.execSQL("drop table if exists " + rawTableName);
+        db.execSQL("drop table if exists " + convertedTableName);
+        Log.d("Log", "creating table ["+rawTableName+"]");
+        db.execSQL("create table if not exists " + rawTableName + "(" +
                 "_id integer PRIMARY KEY autoincrement, " +
                 "location text," +
                 "mag_x real, mag_y real, mag_z real," +
-                "acc_x real, acc_y real, acc_z real," +
-                "gyro_x real, gyro_y real, gyro_z real," +
-                "grav_x real, grav_y real, grav_z real," +
-                "lin_x real, lin_y real, lin_z real," +
-                "rot_x real, rot_y real, rot_z real);");
+                "grav_x real, grav_y real, grav_z real);");
+        Log.d("Log", "creating table ["+convertedTableName+"]");
+        db.execSQL("create table if not exists " + convertedTableName + "(" +
+                "_id integer PRIMARY KEY autoincrement, " +
+                "location text," +
+                "vertical real, horizontal real, magnitude real);");
 
         tableCreated = true;
-        Log.d("Log", "table has been created.");
+        Log.d("Log", "tables have been created.");
     }
 
     private class MagnetometerListener implements SensorEventListener {
@@ -218,38 +173,6 @@ public class MainActivity extends AppCompatActivity {
             magX = event.values[0];
             magY = event.values[1];
             magZ = event.values[2];
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-        }
-    }
-
-    private class AccelerometerListener implements SensorEventListener {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            // Acceleration force along the x,y and z axis (including gravity)
-            // All values are in m/s^2
-            accX = event.values[0];
-            accY = event.values[1];
-            accZ = event.values[2];
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-        }
-    }
-
-    private class GyroscopeListener implements SensorEventListener {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            // Rate of rotation around the x,y and z axis
-            // All values are in rad/s
-            gyroX = event.values[0];
-            gyroY = event.values[1];
-            gyroZ = event.values[2];
         }
 
         @Override
@@ -274,63 +197,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class LinearAccelerometerListener implements SensorEventListener {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            // Acceleration force along the x,y and z axis (excluding gravity)
-            // All values are in m/s^2
-            linX = event.values[0];
-            linY = event.values[1];
-            linZ = event.values[2];
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-        }
-    }
-
-    private class RotationVectorListener implements SensorEventListener {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            // Rotation vector component along the x,y and z axis (unitless)
-            rotX = event.values[0];
-            rotY = event.values[1];
-            rotZ = event.values[2];
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-        }
-    }
-
-
-    private void saveSensorData(final String tbName, final String locId) {
+    private void saveSensorData(final String locId) {
         Log.d("Log", "inserting records using parameters.");
         final ContentValues recordValues = new ContentValues();
+        final ContentValues convertedRecordValues = new ContentValues();
 
         recordValues.put("location", locId);
         recordValues.put("mag_x", magX);
         recordValues.put("mag_y", magY);
         recordValues.put("mag_z", magZ);
-        recordValues.put("acc_x", accX);
-        recordValues.put("acc_y", accY);
-        recordValues.put("acc_z", accZ);
-        recordValues.put("gyro_x", gyroX);
-        recordValues.put("gyro_y", gyroY);
-        recordValues.put("gyro_z", gyroZ);
         recordValues.put("grav_x", gravX);
         recordValues.put("grav_y", gravY);
         recordValues.put("grav_z", gravZ);
-        recordValues.put("lin_x", linX);
-        recordValues.put("lin_y", linY);
-        recordValues.put("lin_z", linZ);
-        recordValues.put("rot_x", rotX);
-        recordValues.put("rot_y", rotY);
-        recordValues.put("rot_z", rotZ);
+        double G = Math.sqrt(Math.pow(gravX,2) + Math.pow(gravY,2) + Math.pow(gravZ,2));
+        double cosA = gravZ/G;
+        double magXY = Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2));
+        double magVer = magZ * cosA + magXY * Math.sqrt(1 - Math.pow(cosA,2));
+        double magMag = Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2) + Math.pow(magZ,2));
+        double magHor = Math.sqrt(Math.pow(magMag,2) - Math.pow(magVer,2));
+        convertedRecordValues.put("location", locId);
+        convertedRecordValues.put("vertical", magVer);
+        convertedRecordValues.put("horizontal", magHor);
+        convertedRecordValues.put("magnitude", magMag);
+        Log.d("Log", "Magnitude of gravity: " + G);
+        Log.d("Log", "Cosine of A: " + cosA);
+        Log.d("Log", "Vertical magnetic field: " + magVer);
+        Log.d("Log", "Horizontal magnetic field: " + magHor);
+        Log.d("Log", "Magnitude of magnetic field: " + Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2) + Math.pow(magZ,2)));
 
-        String SQL = "select * from " + tbName + " where location = ?";
+        String SQL = "select * from " + rawTableName + " where location = ?";
         Cursor c = db.rawQuery(SQL, new String[] {locId});
         if (c.moveToFirst()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -340,8 +235,12 @@ public class MainActivity extends AppCompatActivity {
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    db.update(tbName,
+                    db.update(rawTableName,
                             recordValues,
+                            "location = ?",
+                            new String[] {locId});
+                    db.update(convertedTableName,
+                            convertedRecordValues,
                             "location = ?",
                             new String[] {locId});
                 }
@@ -356,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
             c.close();
         } else {
-            db.insert(tbName, null, recordValues);
+            db.insert(rawTableName, null, recordValues);
+            db.insert(convertedTableName, null, convertedRecordValues);
             Log.d("saveSensorData", "insertion complete");
         }
     }
