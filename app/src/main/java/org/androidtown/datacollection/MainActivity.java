@@ -330,8 +330,8 @@ public class MainActivity extends AppCompatActivity {
         recordValues.put("rot_y", rotY);
         recordValues.put("rot_z", rotZ);
 
-        String SQL = "select * from " + tbName + " where location=" + locId;
-        Cursor c = db.rawQuery(SQL, null);
+        String SQL = "select * from " + tbName + " where location = ?";
+        Cursor c = db.rawQuery(SQL, new String[] {locId});
         if (c.moveToFirst()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Duplicate Location");
