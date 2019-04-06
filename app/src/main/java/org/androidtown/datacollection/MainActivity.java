@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -27,13 +25,13 @@ public class MainActivity extends AppCompatActivity {
         ResetOrKeep r = null;
         boolean checked;
 
-        if (id == R.id.radio1){
+        if (id == R.id.radio1){ // Reset DB
             r = new ResetOrKeep(1);
             checked = true;
-        } else if (id == R.id.radio2){
+        } else if (id == R.id.radio2){  // Keep the existing DB
             r = new ResetOrKeep(0);
             checked = true;
-        } else {
+        } else {    // No radio button is checked
             checked = false;
             Toast.makeText(getApplicationContext(),
                     "Please check one of the options.", Toast.LENGTH_SHORT).show();

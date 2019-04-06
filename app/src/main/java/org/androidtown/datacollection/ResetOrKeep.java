@@ -3,8 +3,9 @@ package org.androidtown.datacollection;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/* Class for data passed from MainActivity to CollectionActivity */
 public class ResetOrKeep implements Parcelable {
-    private int reset;
+    private int reset;  // If 1, reset the DB. If 0, keep the DB.
 
     public ResetOrKeep(int r) {
         reset = r;
@@ -38,9 +39,5 @@ public class ResetOrKeep implements Parcelable {
 
     public int getReset() {
         return reset;
-    }
-
-    public void setReset(int reset) {
-        this.reset = reset;
     }
 }

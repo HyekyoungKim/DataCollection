@@ -54,7 +54,6 @@ public class CollectionActivity extends AppCompatActivity {
         Intent intent = getIntent();
         processIntent(intent);
 
-
         createDatabase();
         createTable();
 
@@ -68,6 +67,7 @@ public class CollectionActivity extends AppCompatActivity {
         gravListener = new GravityListener();
         manager.registerListener(gravListener, gravity, SensorManager.SENSOR_DELAY_NORMAL);
 
+        /* Collect sensor data at user's current location */
         final EditText locationId = findViewById(R.id.location);
         Button button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
@@ -84,6 +84,7 @@ public class CollectionActivity extends AppCompatActivity {
             }
         });
 
+        /* Show data collected so far */
         final TextView contents = findViewById(R.id.contents);
         Button button2 = findViewById(R.id.button2);
         button2.setOnClickListener(new View.OnClickListener() {
@@ -129,6 +130,7 @@ public class CollectionActivity extends AppCompatActivity {
             }
         });
 
+        /* Delete all data in the tables */
         Button button3 = findViewById(R.id.button3);
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,6 +141,7 @@ public class CollectionActivity extends AppCompatActivity {
         });
     }
 
+    /* Decide whether to reset or keep DB (<- user's choice) */
     private void processIntent (Intent intent) {
         if (intent != null) {
             Bundle bundle = intent.getExtras();
@@ -150,6 +153,7 @@ public class CollectionActivity extends AppCompatActivity {
         }
     }
 
+    /* Create DB if there is none. It there is one, open it. */
     private void createDatabase() {
         Log.d("Log","creating database ["+databaseName+"]");
         try {
@@ -166,6 +170,7 @@ public class CollectionActivity extends AppCompatActivity {
         }
     }
 
+    /* Create two tables (one for raw sensor data, the other one for converted data) */
     private void createTable() {
         if (resetFlag) {
             db.execSQL("drop table if exists " + rawTableName);
@@ -187,6 +192,7 @@ public class CollectionActivity extends AppCompatActivity {
         Log.d("Log", "tables have been created.");
     }
 
+    /* Listen to the magnetometer */
     private class MagnetometerListener implements SensorEventListener {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -202,6 +208,7 @@ public class CollectionActivity extends AppCompatActivity {
         }
     }
 
+    /* Listen to the gravity sensor */
     private class GravityListener implements SensorEventListener {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -218,6 +225,7 @@ public class CollectionActivity extends AppCompatActivity {
         }
     }
 
+    /* Save raw sensor data and corresponding converted data to two separate tables */
     private void saveSensorData(final String locId) {
         Log.d("Log", "inserting records using parameters.");
         final ContentValues recordValues = new ContentValues();
@@ -230,12 +238,18 @@ public class CollectionActivity extends AppCompatActivity {
         recordValues.put("grav_x", gravX);
         recordValues.put("grav_y", gravY);
         recordValues.put("grav_z", gravZ);
+
+        /* Magnetic Data Elements Conversion */
+        /* Reference:
+           Lee, N.; Ahn S.; Han D. AMID: Accurate Magnetic Indoor Localization Using Deep Learning.
+           Sensors 2018, 18, 1598. */
         double G = Math.sqrt(Math.pow(gravX,2) + Math.pow(gravY,2) + Math.pow(gravZ,2));
         double cosA = gravZ/G;
         double magXY = Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2));
         double magVer = magZ * cosA + magXY * Math.sqrt(1 - Math.pow(cosA,2));
         double magMag = Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2) + Math.pow(magZ,2));
         double magHor = Math.sqrt(Math.pow(magMag,2) - Math.pow(magVer,2));
+
         convertedRecordValues.put("location", locId);
         convertedRecordValues.put("vertical", magVer);
         convertedRecordValues.put("horizontal", magHor);
@@ -246,9 +260,11 @@ public class CollectionActivity extends AppCompatActivity {
         Log.d("Log", "Horizontal magnetic field: " + magHor);
         Log.d("Log", "Magnitude of magnetic field: " + Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2) + Math.pow(magZ,2)));
 
+        /* If this record has duplicate location ID with one in the table,
+           ask user what to do (update with the new record or keep the old one) */
         String SQL = "select * from " + rawTableName + " where location = ?";
         Cursor c = db.rawQuery(SQL, new String[] {locId});
-        if (c.moveToFirst()) {
+        if (c.moveToFirst()) {  // Duplicate location ID
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Duplicate Location");
             builder.setMessage("Do you want to replace the existing data?");
@@ -275,7 +291,7 @@ public class CollectionActivity extends AppCompatActivity {
             AlertDialog dialog = builder.create();
             dialog.show();
             c.close();
-        } else {
+        } else {    // No duplicate location ID (insert the new one)
             db.insert(rawTableName, null, recordValues);
             db.insert(convertedTableName, null, convertedRecordValues);
             Log.d("saveSensorData", "insertion complete");
