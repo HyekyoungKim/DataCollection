@@ -97,7 +97,7 @@ public class CollectionActivity extends AppCompatActivity {
                 int recordCount = c.getCount();
                 Log.d("Log", "cursor count : " + recordCount + "\n");
                 contents.setText("");
-                for (int i = 0; i< recordCount; i++) {
+                for (int i = 0; i < recordCount; i++) {
                     c.moveToNext();
                     String _location = c.getString(0);
                     double _magX = c.getDouble(1);
@@ -136,6 +136,27 @@ public class CollectionActivity extends AppCompatActivity {
             public void onClick(View v) {
                 db.delete(rawTableName, null, null);
                 db.delete(convertedTableName, null, null);
+            }
+        });
+
+        /* Show the progress of data collection at each location */
+        Button button4 = findViewById(R.id.button4);
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Cursor c = db.rawQuery(
+                        "select location, count(_id)" +
+                                "from " + convertedTableName +
+                                " group by location", null);
+                int recordCount = c.getCount();
+                contents.setText("");
+                for (int i = 0; i < recordCount; i++) {
+                    c.moveToNext();
+                    String _location = c.getString(0);
+                    int _count = c.getInt(1);
+                    contents.append("Location ID: " + _location + "     # of records: " + _count + "\n");
+                }
+                c.close();
             }
         });
 
