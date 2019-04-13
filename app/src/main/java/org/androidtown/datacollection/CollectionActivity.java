@@ -1,7 +1,9 @@
 package org.androidtown.datacollection;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -28,11 +30,11 @@ public class CollectionActivity extends AppCompatActivity {
     String databaseName = "DATA_COLLECTION";
     String rawTableName = "SENSOR_DATA";
     String convertedTableName = "CONVERTED_DATA";
-    String finalTableName = "FINAL_DATA";
+    public static String finalTableName = "FINAL_DATA";
     boolean databaseCreated = false;
     boolean tableCreated = false;
 
-    SQLiteDatabase db;
+    public static SQLiteDatabase db;
 
     /* For Sensors */
     private SensorManager manager = null;
@@ -134,8 +136,7 @@ public class CollectionActivity extends AppCompatActivity {
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                db.delete(rawTableName, null, null);
-                db.delete(convertedTableName, null, null);
+                clearTable();
             }
         });
 
@@ -188,6 +189,9 @@ public class CollectionActivity extends AppCompatActivity {
                     db.insert(finalTableName, null, finalValues);
                 }
                 c2.close();
+
+                Intent intent = new Intent(getApplicationContext(), FinalActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -320,5 +324,29 @@ public class CollectionActivity extends AppCompatActivity {
         db.insert(rawTableName, null, recordValues);
         db.insert(convertedTableName, null, convertedRecordValues);
         Log.d("saveSensorData", "insertion complete");
+    }
+
+    /* Delete all records in the tables */
+    private void clearTable() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Clear the tables");
+        builder.setMessage("All the records in the tables will be deleted. " +
+                "Are you sure to continue?");
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                db.delete(rawTableName, null, null);
+                db.delete(convertedTableName, null, null);
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }
