@@ -1,9 +1,7 @@
 package org.androidtown.datacollection;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -30,6 +28,7 @@ public class CollectionActivity extends AppCompatActivity {
     String databaseName = "DATA_COLLECTION";
     String rawTableName = "SENSOR_DATA";
     String convertedTableName = "CONVERTED_DATA";
+    String finalTableName = "FINAL_DATA";
     boolean databaseCreated = false;
     boolean tableCreated = false;
 
@@ -94,7 +93,7 @@ public class CollectionActivity extends AppCompatActivity {
                         "select location, mag_x, mag_y, mag_z, " +
                                 "grav_x, grav_y, grav_z, vertical, horizontal, magnitude " +
                                 "from " + rawTableName + " join " + convertedTableName +
-                                " using(location)", null);
+                                " using(_id, location)", null);
                 int recordCount = c.getCount();
                 Log.d("Log", "cursor count : " + recordCount + "\n");
                 contents.setText("");
@@ -139,6 +138,37 @@ public class CollectionActivity extends AppCompatActivity {
                 db.delete(convertedTableName, null, null);
             }
         });
+
+        /* Finish data collection and save the final result */
+        Button button5 = findViewById(R.id.button5);
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ContentValues finalValues = new ContentValues();
+                Cursor c2 = db.rawQuery("SELECT location, " +
+                        "(sum(vertical)-max(vertical)-min(vertical))/(count(_id)-2), " +
+                        "(sum(horizontal)-max(horizontal)-min(horizontal))/(count(_id)-2), " +
+                        "(sum(magnitude)-max(magnitude)-min(magnitude))/(count(_id)-2) " +
+                        "FROM " + convertedTableName +
+                        " GROUP BY location", null);
+                int recordCount2 = c2.getCount();
+                for (int i = 0; i < recordCount2; i++) {
+                    c2.moveToNext();
+                    String _location = c2.getString(0);
+                    double _vertical = c2.getDouble(1);
+                    double _horizontal = c2.getDouble(2);
+                    double _magnitude = c2.getDouble(3);
+
+                    finalValues.put("location", _location);
+                    finalValues.put("vertical", _vertical);
+                    finalValues.put("horizontal", _horizontal);
+                    finalValues.put("magnitude", _magnitude);
+
+                    db.insert(finalTableName, null, finalValues);
+                }
+                c2.close();
+            }
+        });
     }
 
     /* Decide whether to reset or keep DB (<- user's choice) */
@@ -175,6 +205,7 @@ public class CollectionActivity extends AppCompatActivity {
         if (resetFlag) {
             db.execSQL("drop table if exists " + rawTableName);
             db.execSQL("drop table if exists " + convertedTableName);
+            db.execSQL("drop table if exists " + finalTableName);
         }
         Log.d("Log", "creating table ["+rawTableName+"]");
         db.execSQL("create table if not exists " + rawTableName + "(" +
@@ -184,6 +215,11 @@ public class CollectionActivity extends AppCompatActivity {
                 "grav_x real, grav_y real, grav_z real);");
         Log.d("Log", "creating table ["+convertedTableName+"]");
         db.execSQL("create table if not exists " + convertedTableName + "(" +
+                "_id integer PRIMARY KEY autoincrement, " +
+                "location text," +
+                "vertical real, horizontal real, magnitude real);");
+        Log.d("Log", "creating table ["+finalTableName+"]");
+        db.execSQL("create table if not exists " + finalTableName + "(" +
                 "_id integer PRIMARY KEY autoincrement, " +
                 "location text," +
                 "vertical real, horizontal real, magnitude real);");
@@ -260,41 +296,8 @@ public class CollectionActivity extends AppCompatActivity {
         Log.d("Log", "Horizontal magnetic field: " + magHor);
         Log.d("Log", "Magnitude of magnetic field: " + Math.sqrt(Math.pow(magX,2) + Math.pow(magY,2) + Math.pow(magZ,2)));
 
-        /* If this record has duplicate location ID with one in the table,
-           ask user what to do (update with the new record or keep the old one) */
-        String SQL = "select * from " + rawTableName + " where location = ?";
-        Cursor c = db.rawQuery(SQL, new String[] {locId});
-        if (c.moveToFirst()) {  // Duplicate location ID
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Duplicate Location");
-            builder.setMessage("Do you want to replace the existing data?");
-            builder.setIcon(android.R.drawable.ic_dialog_alert);
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    db.update(rawTableName,
-                            recordValues,
-                            "location = ?",
-                            new String[] {locId});
-                    db.update(convertedTableName,
-                            convertedRecordValues,
-                            "location = ?",
-                            new String[] {locId});
-                }
-            });
-            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
-            c.close();
-        } else {    // No duplicate location ID (insert the new one)
-            db.insert(rawTableName, null, recordValues);
-            db.insert(convertedTableName, null, convertedRecordValues);
-            Log.d("saveSensorData", "insertion complete");
-        }
+        db.insert(rawTableName, null, recordValues);
+        db.insert(convertedTableName, null, convertedRecordValues);
+        Log.d("saveSensorData", "insertion complete");
     }
 }

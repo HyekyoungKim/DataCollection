@@ -4,34 +4,56 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+
     <EditText
         android:id="@+id/location"
         android:inputType="text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:hint="Enter the location ID"
-        android:layout_gravity="center"
-        android:gravity="center"/>
-
+        android:gravity="center"
+        android:layout_gravity="center"/>
     <Button
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Collect Data Here!"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp">
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Me The Data!"
+            android:layout_gravity="center" />
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear The Table!"
+            android:layout_gravity="center" />
+    </LinearLayout>
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/button4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show Me The Data!"
-        android:layout_gravity="center" />
+        android:text="Show Me The Progress!"
+        android:layout_gravity="center"/>
+
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Clear The Table!"
-        android:layout_gravity="center" />
+        android:text="Finish Data Collection!"
+        android:layout_gravity="center"
+        android:background="#88aabbff"/>
 
     <ScrollView
         android:layout_width="match_parent"
