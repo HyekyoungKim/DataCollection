@@ -4,21 +4,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-
-    <EditText
-        android:id="@+id/location"
-        android:inputType="text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="Enter the location ID"
-        android:gravity="center"
-        android:layout_gravity="center"/>
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/buttonCollect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Collect Data Here!"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:onClick="onClickCollect"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -27,33 +19,38 @@
         android:layout_gravity="center"
         android:layout_marginTop="10dp">
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/buttonShowData"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Show Me The Data!"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:onClick="onClickShowData"/>
         <Button
-            android:id="@+id/button3"
+            android:id="@+id/buttonClear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Clear The Table!"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:onClick="onClickClear"/>
     </LinearLayout>
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/buttonProgress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Show Me The Progress!"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:onClick="onClickProgress"/>
 
     <Button
-        android:id="@+id/button5"
+        android:id="@+id/buttonFinish"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Finish Data Collection!"
         android:layout_gravity="center"
-        android:background="#88aabbff"/>
+        android:background="#88aabbff"
+        android:layout_marginBottom="10dp"
+        android:onClick="onClickFinish"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -61,7 +58,7 @@
         android:orientation="vertical">
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="100dp"
             android:background="#fff5deb3">
             <TextView
                 android:id="@+id/status"

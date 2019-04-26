@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Created by dongdokee on 19/04/2019.
@@ -46,8 +47,6 @@ public class UWBLocalizer {
 
     private final int NUM_ANCHORS = 5;
 
-    /* https://en.wikipedia.org/wiki/True_range_multilateration */
-    /* Assume that all anchors are on z=0 */
     private final int NUM_ANCHORS_USED = 3;
     private final float U = 10;
     private final float Vx = 5;
@@ -424,14 +423,25 @@ public class UWBLocalizer {
             }
         }
 
-        float r1 = distance[0];
-        float r2 = distance[1];
-        float r3 = distance[2];
+        Random random = new Random();
+        float r1 = random.nextFloat() * random.nextInt(20);
+        float r2 = random.nextFloat() * random.nextInt(20);
+        float r3 = random.nextFloat() * random.nextInt(20);
+
+//        float r1 = distance[0];
+//        float r2 = distance[1];
+//        float r3 = distance[2];
+        /** True Range Multilateration
+         *  Reference:
+         *  https://en.wikipedia.org/wiki/True_range_multilateration#Three_Cartesian_dimensions,_three_measured_slant_ranges
+         *  Assume that all anchors and tag are at the same height
+         */
         x = (float) (Math.pow(r1,2) - Math.pow(r2,2) + Math.pow(U,2))
                 / (2 * U);
         y = (float) (Math.pow(r1,2) - Math.pow(r3,2) + (Math.pow(Vx,2) + Math.pow(Vy,2)) - 2 * Vx * x)
                 / (2 * Vy);
-        Log.d("test", "x: "+x+" y: "+y);
+        CollectionActivity.LOCATION_READY = true;
+        Log.d("test", "x: " + x + " y: " + y);
     }
 
     public void localize() {

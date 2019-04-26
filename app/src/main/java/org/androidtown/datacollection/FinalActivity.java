@@ -17,18 +17,20 @@ public class FinalActivity extends AppCompatActivity {
         /* Show the final result (fully processed data at each location) */
         final TextView contents = findViewById(R.id.contents);
         Cursor c = CollectionActivity.db.rawQuery(
-                "select location, vertical, horizontal, magnitude " +
-                        "from " + CollectionActivity.finalTableName, null);
+                "select pos_x, pos_y, vertical, horizontal, magnitude " +
+                        "from " + CollectionActivity.tableName, null);
         int recordCount = c.getCount();
         contents.setText("");
         for (int i = 0; i < recordCount; i++) {
             c.moveToNext();
-            String _location = c.getString(0);
-            double _vertical = c.getDouble(1);
-            double _horizontal = c.getDouble(2);
-            double _magnitude = c.getDouble(3);
+            double _posX = c.getDouble(0);
+            double _posY = c.getDouble(1);
+            double _vertical = c.getDouble(2);
+            double _horizontal = c.getDouble(3);
+            double _magnitude = c.getDouble(4);
 
-            contents.append("Location ID: " + _location + "\n" +
+            contents.append("Location (x,y): (" + String.format(Locale.KOREA,"%.2f", _posX)
+                    + ", " + String.format(Locale.KOREA,"%.2f", _posY) + ")" + "\n" +
                     "Vertical: " +
                     String.format(Locale.KOREA, "%.2f",_vertical) + "\n" +
                     "Horizontal: " +
