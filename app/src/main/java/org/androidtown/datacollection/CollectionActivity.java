@@ -11,6 +11,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +22,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 public class CollectionActivity extends AppCompatActivity {
@@ -47,6 +50,11 @@ public class CollectionActivity extends AppCompatActivity {
     private SensorEventListener gravListener;
     private double gravX, gravY, gravZ;
 
+    /* For UWB localization */
+    TextView textView;
+    UWBLocalizer uwbLocalizer;
+    Handler handler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,12 +76,23 @@ public class CollectionActivity extends AppCompatActivity {
         gravListener = new GravityListener();
         manager.registerListener(gravListener, gravity, SensorManager.SENSOR_DELAY_NORMAL);
 
+
+        textView = findViewById(R.id.status);
+        handler = new MyHandler(this);
+
+        uwbLocalizer = new UWBLocalizer(this, handler);
+        uwbLocalizer.registerReceiver();
+        uwbLocalizer.begin();
+
         /* Collect sensor data at user's current location */
         final EditText locationId = findViewById(R.id.location);
         Button button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                uwbLocalizer.localize();
+                float x = uwbLocalizer.getX();
+                float y = uwbLocalizer.getY();
                 String locId = locationId.getText().toString().trim();
                 if(locId.getBytes().length <= 0) {
                     Toast.makeText(getApplicationContext(),
@@ -194,6 +213,13 @@ public class CollectionActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    protected void onDestroy () {
+        super.onDestroy();
+        uwbLocalizer.end();
+        uwbLocalizer.unregisterReceiver();
     }
 
     /* Decide whether to reset or keep DB (<- user's choice) */
@@ -348,5 +374,73 @@ public class CollectionActivity extends AppCompatActivity {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void tvAppend(TextView tv, CharSequence text) {
+        final TextView ftv = tv;
+        final CharSequence ftext = text;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ftv.append(ftext);
+            }
+        });
+    }
+
+    public static class MyHandler extends Handler {
+        private final WeakReference<CollectionActivity> mActivity;
+
+        public MyHandler(CollectionActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case UWBLocalizer.TRIGER_SCAN:
+                    mActivity.get().tvAppend(mActivity.get().textView, "trigger scan\n");
+                    break;
+                case UWBLocalizer.SCAN_FAILED:
+                    mActivity.get().tvAppend(mActivity.get().textView, "scan failed\n");
+                    break;
+                case UWBLocalizer.DATA_READY_SEND:
+                    mActivity.get().tvAppend(mActivity.get().textView, "send data ready reason: " + String.valueOf(msg.arg1) +"\n");
+                    break;
+                case UWBLocalizer.NO_DATA:
+                    mActivity.get().tvAppend(mActivity.get().textView, "no data\n");
+                    break;
+                case UWBLocalizer.DATA_READY:
+                    mActivity.get().tvAppend(mActivity.get().textView, "data ready\n");
+                    break;
+                case UWBLocalizer.DATA_READY_FAILED:
+                    mActivity.get().tvAppend(mActivity.get().textView, "data ready failed\n");
+                    break;
+                case UWBLocalizer.ANCHOR_ID_SEND:
+                    mActivity.get().tvAppend(mActivity.get().textView, "anchor id send\n");
+                    break;
+                case UWBLocalizer.ANCHOR_ID_RECEIVE:
+                    short id = (Short)msg.obj;
+                    mActivity.get().tvAppend(mActivity.get().textView, "anchor id received id: " + String.valueOf(id) + "\n");
+                    break;
+                case UWBLocalizer.ANCHOR_ID_FAILED:
+                    mActivity.get().tvAppend(mActivity.get().textView, "anchor id failed\n");
+                    break;
+                case UWBLocalizer.ANCHOR_DIST_SEND:
+                    mActivity.get().tvAppend(mActivity.get().textView, "anchor dist send\n");
+                    break;
+                case UWBLocalizer.ANCHOR_DIST_RECEIVE:
+                    float dist = (Float)msg.obj;
+                    mActivity.get().tvAppend(mActivity.get().textView, "anchor dist received distance: " + dist + "\n");
+                    break;
+                case UWBLocalizer.ANCHOR_DIST_FAIL:
+                    mActivity.get().tvAppend(mActivity.get().textView, "anchor dist failed\n");
+                    break;
+                case UWBLocalizer.TASK_DONE:
+                    mActivity.get().tvAppend(mActivity.get().textView, "task finished\n");
+                    break;
+            }
+        }
+
     }
 }
