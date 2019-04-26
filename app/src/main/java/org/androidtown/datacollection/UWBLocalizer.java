@@ -48,11 +48,11 @@ public class UWBLocalizer {
     private final int NUM_ANCHORS = 5;
 
     private final int NUM_ANCHORS_USED = 3;
+    private final int NUM_REPEAT = 5;
     private float U, Vx, Vy;
     private short ID1;    // At (0,0)
     private short ID2;    // At (U,0)
     private short ID3;    // At (Vx,Vy)
-    private short [] ANCHOR_ID = {ID1, ID2, ID3};
     private float x, y;
 
     public static final int TRIGER_SCAN = 0;
@@ -357,8 +357,8 @@ public class UWBLocalizer {
         int idx = 0;
         for (int i = 0 ; i < NUM_ANCHORS ; i++) {
             if ((anchorId[i] != 0) && (distance[i] != 0)) {
-                validAnchors[idx] = validAnchors[i];
-                validDistance[idx] = validDistance[i];
+                validAnchors[idx] = anchorId[i];
+                validDistance[idx] = distance[i];
                 idx++;
             }
         }
@@ -392,52 +392,88 @@ public class UWBLocalizer {
         }
     }
 
+    /* Only for testing without real anchors */
+//    public void dummyCollectOne(Map<Short, List<Float>> map) {
+//        if (!map.containsKey(ID1))
+//            map.put(ID1, new ArrayList<Float>());
+//        if (!map.containsKey(ID2))
+//            map.put(ID2, new ArrayList<Float>());
+//        if (!map.containsKey(ID3))
+//            map.put(ID3, new ArrayList<Float>());
+//        List list;
+//        Random random = new Random();
+//        list = map.get(ID1);
+//        list.add(random.nextFloat() * random.nextInt(20));
+//        list = map.get(ID2);
+//        list.add(random.nextFloat() * random.nextInt(20));
+//        list = map.get(ID3);
+//        list.add(random.nextFloat() * random.nextInt(20));
+//    }
+
     public void localize_() {
         anchorDistMap = new HashMap<Short, List<Float>>();
 
         // collect data N times
-        for (int i = 0 ; i < 5 ; i++) {
+        for (int i = 0 ; i < NUM_REPEAT ; i++) {
             collectOne(anchorDistMap);
+            //dummyCollectOne(anchorDistMap);   // only for testing without real anchors
         }
 
+        short [] anchor_id = {ID1, ID2, ID3};
         float [] distance = new float[NUM_ANCHORS_USED];
         for (int i = 0 ; i < NUM_ANCHORS_USED; i++) {
-            short id = ANCHOR_ID[i];
+            short id = anchor_id[i];
             List list = (List) anchorDistMap.get(id);
+            float[] dist = new float[NUM_REPEAT];
             if (list != null) {
                 int count = 0;
-                float sum = 0;
-                for (int j = 0; j < 5; j++) {
-                    float d = ((Float) list.get(i)).floatValue();
-                    if (d != 0) {
+                int min = 0, max = 0;
+                for (int j = 0; j < NUM_REPEAT; j++) {
+                    Object object = list.get(j);
+                    if (object != null) {
+                        float d = ((Float) object).floatValue();
+                        dist[j] = d;
+                        if (j > 0) {
+                            if (d < dist[min])
+                                min = j;
+                            else if (d > dist[max])
+                                max = j;
+                        }
                         count++;
-                        sum += d;
+                    } else {
+                        break;
                     }
                 }
-                distance[i] = sum / count;
-                Log.d("test", "distance: " + distance[i]);
+                float sum = 0;
+                if (count > 2) {
+                    for (int j = 0; j < count; j++) {
+                        if (j != min && j != max)
+                            sum += dist[j];
+                    }
+                    distance[i] = sum / (count - 2);
+                    CollectionActivity.ENOUGH_DATA = true;
+                } else {
+                    CollectionActivity.ENOUGH_DATA = false;
+                    break;
+                }
             }
         }
 
-        Random random = new Random();
-        float r1 = random.nextFloat() * random.nextInt(20);
-        float r2 = random.nextFloat() * random.nextInt(20);
-        float r3 = random.nextFloat() * random.nextInt(20);
-
-//        float r1 = distance[0];
-//        float r2 = distance[1];
-//        float r3 = distance[2];
-        /** True Range Multilateration
-         *  Reference:
-         *  https://en.wikipedia.org/wiki/True_range_multilateration#Three_Cartesian_dimensions,_three_measured_slant_ranges
-         *  Assume that all anchors and tag are at the same height
-         */
-        x = (float) (Math.pow(r1,2) - Math.pow(r2,2) + Math.pow(U,2))
-                / (2 * U);
-        y = (float) (Math.pow(r1,2) - Math.pow(r3,2) + (Math.pow(Vx,2) + Math.pow(Vy,2)) - 2 * Vx * x)
-                / (2 * Vy);
+        if (CollectionActivity.ENOUGH_DATA) {
+            float r1 = distance[0];
+            float r2 = distance[1];
+            float r3 = distance[2];
+            /** True Range Multilateration
+             *  Reference:
+             *  https://en.wikipedia.org/wiki/True_range_multilateration#Three_Cartesian_dimensions,_three_measured_slant_ranges
+             *  Assume that all anchors and tag are at the same height
+             */
+            x = (float) (Math.pow(r1, 2) - Math.pow(r2, 2) + Math.pow(U, 2))
+                    / (2 * U);
+            y = (float) (Math.pow(r1, 2) - Math.pow(r3, 2) + (Math.pow(Vx, 2) + Math.pow(Vy, 2)) - 2 * Vx * x)
+                    / (2 * Vy);
+        }
         CollectionActivity.LOCATION_READY = true;
-        Log.d("test", "x: " + x + " y: " + y);
     }
 
     public void localize() {
@@ -488,6 +524,7 @@ public class UWBLocalizer {
 
         @Override
         protected Object doInBackground(Object[] objects) {
+
             localize_();
             return null;
         }
@@ -504,5 +541,4 @@ public class UWBLocalizer {
             super.onPostExecute(o);
         }
     }
-
 }

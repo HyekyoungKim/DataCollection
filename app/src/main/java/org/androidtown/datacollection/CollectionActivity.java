@@ -59,6 +59,7 @@ public class CollectionActivity extends AppCompatActivity {
     UWBLocalizer uwbLocalizer;
     Handler handler;
     public static boolean LOCATION_READY;
+    public static boolean ENOUGH_DATA;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +125,7 @@ public class CollectionActivity extends AppCompatActivity {
     public void onClickCollect(View view) {
         status.setText("");
         LOCATION_READY =false;
+        ENOUGH_DATA = false;
         uwbLocalizer.localize();
         ArrayList<double[]> sensorDataList = new ArrayList<>();
         int sensorDataCount = 0;
@@ -146,12 +148,17 @@ public class CollectionActivity extends AppCompatActivity {
                 gravSensorChanged = false;
             }
         }
-        Toast.makeText(getApplicationContext(),
-                "Sensor Data Count: "+sensorDataCount, Toast.LENGTH_SHORT).show();
-        float x = uwbLocalizer.getX();
-        float y = uwbLocalizer.getY();
+        if (ENOUGH_DATA) {
+            Toast.makeText(getApplicationContext(),
+                    "Sensor Data Count: " + sensorDataCount, Toast.LENGTH_SHORT).show();
+            float x = uwbLocalizer.getX();
+            float y = uwbLocalizer.getY();
 
-        saveSensorData(x, y, sensorDataList, sensorDataCount);
+            saveSensorData(x, y, sensorDataList, sensorDataCount);
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Insufficient UWB data. Try again.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /** Show data collected so far */
