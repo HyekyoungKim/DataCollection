@@ -48,15 +48,11 @@ public class UWBLocalizer {
     private final int NUM_ANCHORS = 5;
 
     private final int NUM_ANCHORS_USED = 3;
-    private final float U = 10;
-    private final float Vx = 5;
-    private final float Vy = 7;
-    private final float [] ANCHOR_POSITION_X = {0, U, Vx};
-    private final float [] ANCHOR_POSITION_Y = {0, 0, Vy};
-    private final short ID1 = 1;    // At (0,0)
-    private final short ID2 = 2;    // At (U,0)
-    private final short ID3 = 3;    // At (Vx,Vy)
-    private final short [] ANCHOR_ID = {ID1, ID2, ID3};
+    private float U, Vx, Vy;
+    private short ID1;    // At (0,0)
+    private short ID2;    // At (U,0)
+    private short ID3;    // At (Vx,Vy)
+    private short [] ANCHOR_ID = {ID1, ID2, ID3};
     private float x, y;
 
     public static final int TRIGER_SCAN = 0;
@@ -454,6 +450,30 @@ public class UWBLocalizer {
 
     public float getY() {
         return y;
+    }
+
+    public void setID1(short ID1) {
+        this.ID1 = ID1;
+    }
+
+    public void setID2(short ID2) {
+        this.ID2 = ID2;
+    }
+
+    public void setID3(short ID3) {
+        this.ID3 = ID3;
+    }
+
+    public void setU(float u) {
+        U = u;
+    }
+
+    public void setVx(float vx) {
+        Vx = vx;
+    }
+
+    public void setVy(float vy) {
+        Vy = vy;
     }
 
     public class LocalizeTask extends AsyncTask {

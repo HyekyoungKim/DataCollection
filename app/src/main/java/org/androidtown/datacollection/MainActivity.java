@@ -8,8 +8,6 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-    public static final int REQUEST_CODE_COLLECTION = 101;
-    public static final String KEY = "reset";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,28 +16,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onButtonClicked (View v) {
-        Intent intent = new Intent(getApplicationContext(), CollectionActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ConfigureActivity.class);
 
         final RadioGroup radioGroup = findViewById(R.id.radioGroup);
         int id = radioGroup.getCheckedRadioButtonId();
-        ResetOrKeep r = null;
-        boolean checked;
 
         if (id == R.id.radio1){ // Reset DB
-            r = new ResetOrKeep(1);
-            checked = true;
+            intent.putExtra("reset", true);
+            startActivity(intent);
         } else if (id == R.id.radio2){  // Keep the existing DB
-            r = new ResetOrKeep(0);
-            checked = true;
+            intent.putExtra("reset", false);
+            startActivity(intent);
         } else {    // No radio button is checked
-            checked = false;
             Toast.makeText(getApplicationContext(),
                     "Please check one of the options.", Toast.LENGTH_SHORT).show();
-        }
-
-        if (checked) {
-            intent.putExtra(KEY, r);
-            startActivityForResult(intent, REQUEST_CODE_COLLECTION);
         }
     }
 

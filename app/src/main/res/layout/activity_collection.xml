@@ -9,6 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Collect Data Here!"
+        android:textAllCaps="false"
         android:layout_gravity="center"
         android:onClick="onClickCollect"/>
 
@@ -16,13 +17,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:layout_marginTop="10dp">
+        android:layout_gravity="center">
         <Button
             android:id="@+id/buttonShowData"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Show Me The Data!"
+            android:textAllCaps="false"
             android:layout_gravity="center"
             android:onClick="onClickShowData"/>
         <Button
@@ -30,6 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Clear The Table!"
+            android:textAllCaps="false"
             android:layout_gravity="center"
             android:onClick="onClickClear"/>
     </LinearLayout>
@@ -39,6 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Show Me The Progress!"
+        android:textAllCaps="false"
         android:layout_gravity="center"
         android:onClick="onClickProgress"/>
 
@@ -47,6 +50,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Finish Data Collection!"
+        android:textAllCaps="false"
         android:layout_gravity="center"
         android:background="#88aabbff"
         android:layout_marginBottom="10dp"
@@ -58,7 +62,7 @@
         android:orientation="vertical">
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="120dp"
             android:background="#fff5deb3">
             <TextView
                 android:id="@+id/status"

@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class CollectionActivity extends AppCompatActivity {
-    public static final String KEY = "reset";
     boolean resetFlag;
     Button collectButton, showDataButton, clearButton, progressButton, finishButton;
     TextView contents, status;
@@ -66,6 +65,11 @@ public class CollectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collection);
 
+        handler = new MyHandler(this);
+        uwbLocalizer = new UWBLocalizer(this, handler);
+        uwbLocalizer.registerReceiver();
+        uwbLocalizer.begin();
+
         Intent intent = getIntent();
         processIntent(intent);
 
@@ -92,11 +96,6 @@ public class CollectionActivity extends AppCompatActivity {
         finishButton = findViewById(R.id.buttonFinish);
         contents = findViewById(R.id.contents);
         status = findViewById(R.id.status);
-
-        handler = new MyHandler(this);
-        uwbLocalizer = new UWBLocalizer(this, handler);
-        uwbLocalizer.registerReceiver();
-        uwbLocalizer.begin();
     }
 
     @Override
@@ -110,18 +109,20 @@ public class CollectionActivity extends AppCompatActivity {
 
     /** Decide whether to reset or keep DB (<- user's choice) */
     private void processIntent (Intent intent) {
-        if (intent != null) {
-            Bundle bundle = intent.getExtras();
-            ResetOrKeep reset = bundle.getParcelable(KEY);
-            if (reset.getReset() == 1)
-                resetFlag = true;
-            else
-                resetFlag = false;
-        }
+        resetFlag = intent.getExtras().getBoolean("reset");
+        uwbLocalizer.setID1(intent.getExtras().getShort("id1"));
+        uwbLocalizer.setID2(intent.getExtras().getShort("id2"));
+        uwbLocalizer.setID3(intent.getExtras().getShort("id3"));
+        uwbLocalizer.setU(intent.getExtras().getFloat("u"));
+        uwbLocalizer.setVx(intent.getExtras().getFloat("vx"));
+        uwbLocalizer.setVy(intent.getExtras().getFloat("vy"));
+        Log.d("intent", "reset: "+resetFlag+", id1: "+intent.getExtras().getShort("id1")
+                +", U: "+intent.getExtras().getFloat("u"));
     }
 
     /** Collect sensor data at user's current location */
     public void onClickCollect(View view) {
+        status.setText("");
         LOCATION_READY =false;
         uwbLocalizer.localize();
         ArrayList<double[]> sensorDataList = new ArrayList<>();
