@@ -392,31 +392,12 @@ public class UWBLocalizer {
         }
     }
 
-    /* Only for testing without real anchors */
-//    public void dummyCollectOne(Map<Short, List<Float>> map) {
-//        if (!map.containsKey(ID1))
-//            map.put(ID1, new ArrayList<Float>());
-//        if (!map.containsKey(ID2))
-//            map.put(ID2, new ArrayList<Float>());
-//        if (!map.containsKey(ID3))
-//            map.put(ID3, new ArrayList<Float>());
-//        List list;
-//        Random random = new Random();
-//        list = map.get(ID1);
-//        list.add(random.nextFloat() * random.nextInt(20));
-//        list = map.get(ID2);
-//        list.add(random.nextFloat() * random.nextInt(20));
-//        list = map.get(ID3);
-//        list.add(random.nextFloat() * random.nextInt(20));
-//    }
-
     public void localize_() {
         anchorDistMap = new HashMap<Short, List<Float>>();
 
         // collect data N times
         for (int i = 0 ; i < NUM_REPEAT ; i++) {
             collectOne(anchorDistMap);
-            //dummyCollectOne(anchorDistMap);   // only for testing without real anchors
         }
 
         short [] anchor_id = {ID1, ID2, ID3};
@@ -426,11 +407,11 @@ public class UWBLocalizer {
             List list = (List) anchorDistMap.get(id);
             float[] dist = new float[NUM_REPEAT];
             if (list != null) {
-                int count = 0;
                 int min = 0, max = 0;
-                for (int j = 0; j < NUM_REPEAT; j++) {
-                    Object object = list.get(j);
-                    if (object != null) {
+                int num_records = list.size();
+                if (num_records > 2) {
+                    for (int j = 0; j < num_records; j++) {
+                        Object object = list.get(j);
                         float d = ((Float) object).floatValue();
                         dist[j] = d;
                         if (j > 0) {
@@ -439,18 +420,13 @@ public class UWBLocalizer {
                             else if (d > dist[max])
                                 max = j;
                         }
-                        count++;
-                    } else {
-                        break;
                     }
-                }
-                float sum = 0;
-                if (count > 2) {
-                    for (int j = 0; j < count; j++) {
+                    float sum = 0;
+                    for (int j = 0; j < num_records; j++) {
                         if (j != min && j != max)
                             sum += dist[j];
                     }
-                    distance[i] = sum / (count - 2);
+                    distance[i] = sum / (num_records - 2);
                     CollectionActivity.ENOUGH_DATA = true;
                 } else {
                     CollectionActivity.ENOUGH_DATA = false;

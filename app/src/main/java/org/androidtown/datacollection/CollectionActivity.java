@@ -123,7 +123,6 @@ public class CollectionActivity extends AppCompatActivity {
 
     /** Collect sensor data at user's current location */
     public void onClickCollect(View view) {
-        status.setText("");
         LOCATION_READY =false;
         ENOUGH_DATA = false;
         uwbLocalizer.localize();
