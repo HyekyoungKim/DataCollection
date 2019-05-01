@@ -432,6 +432,8 @@ public class UWBLocalizer {
                     CollectionActivity.ENOUGH_DATA = false;
                     break;
                 }
+            } else {
+                CollectionActivity.ENOUGH_DATA = false;
             }
         }
 
