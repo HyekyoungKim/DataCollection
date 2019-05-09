@@ -114,11 +114,15 @@ public class CollectionActivity extends AppCompatActivity {
         uwbLocalizer.setID1(intent.getExtras().getShort("id1"));
         uwbLocalizer.setID2(intent.getExtras().getShort("id2"));
         uwbLocalizer.setID3(intent.getExtras().getShort("id3"));
-        uwbLocalizer.setU(intent.getExtras().getFloat("u"));
-        uwbLocalizer.setVx(intent.getExtras().getFloat("vx"));
-        uwbLocalizer.setVy(intent.getExtras().getFloat("vy"));
-        Log.d("intent", "reset: "+resetFlag+", id1: "+intent.getExtras().getShort("id1")
-                +", U: "+intent.getExtras().getFloat("u"));
+        uwbLocalizer.setID4(intent.getExtras().getShort("id4"));
+        uwbLocalizer.setPosition1(intent.getExtras().getFloat("x1"),
+                intent.getExtras().getFloat("y1"), intent.getExtras().getFloat("z1"));
+        uwbLocalizer.setPosition2(intent.getExtras().getFloat("x2"),
+                intent.getExtras().getFloat("y2"), intent.getExtras().getFloat("z2"));
+        uwbLocalizer.setPosition3(intent.getExtras().getFloat("x3"),
+                intent.getExtras().getFloat("y3"), intent.getExtras().getFloat("z3"));
+        uwbLocalizer.setPosition4(intent.getExtras().getFloat("x4"),
+                intent.getExtras().getFloat("y4"), intent.getExtras().getFloat("z4"));
     }
 
     /** Collect sensor data at user's current location */

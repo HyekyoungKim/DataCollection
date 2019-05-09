@@ -16,6 +16,11 @@ import android.widget.Toast;
 
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
+import com.lemmingapex.trilateration.NonLinearLeastSquaresSolver;
+import com.lemmingapex.trilateration.TrilaterationFunction;
+
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,12 +52,13 @@ public class UWBLocalizer {
 
     private final int NUM_ANCHORS = 5;
 
-    private final int NUM_ANCHORS_USED = 3;
+    private final int NUM_ANCHORS_USED = 4;
     private final int NUM_REPEAT = 5;
-    private float U, Vx, Vy;
-    private short ID1;    // At (0,0)
-    private short ID2;    // At (U,0)
-    private short ID3;    // At (Vx,Vy)
+    private float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+    private short ID1;    // At (x1, y1, z1)
+    private short ID2;    // At (x2, y2, z2)
+    private short ID3;    // At (x3, y3, z3)
+    private short ID4;    // At (x4, y4, z4)
     private float x, y;
 
     public static final int TRIGER_SCAN = 0;
@@ -385,9 +391,11 @@ public class UWBLocalizer {
         // insert them to the map
         for (int i = 0 ; i < valid_num ; i++) {
             if (!map.containsKey(validAnchors[i]))
-                map.put(anchorId[i], new ArrayList<Float>());
+                //map.put(anchorId[i], new ArrayList<Float>());
+                map.put(validAnchors[i], new ArrayList<Float>());
 
-            List list = map.get(anchorId[i]);
+            //List list = map.get(anchorId[i]);
+            List list = map.get(validAnchors[i]);
             list.add(validDistance[i]);
         }
     }
@@ -400,7 +408,7 @@ public class UWBLocalizer {
             collectOne(anchorDistMap);
         }
 
-        short [] anchor_id = {ID1, ID2, ID3};
+        short [] anchor_id = {ID1, ID2, ID3, ID4};
         float [] distance = new float[NUM_ANCHORS_USED];
         for (int i = 0 ; i < NUM_ANCHORS_USED; i++) {
             short id = anchor_id[i];
@@ -434,22 +442,24 @@ public class UWBLocalizer {
                 }
             } else {
                 CollectionActivity.ENOUGH_DATA = false;
+                break;
             }
         }
 
         if (CollectionActivity.ENOUGH_DATA) {
-            float r1 = distance[0];
-            float r2 = distance[1];
-            float r3 = distance[2];
-            /** True Range Multilateration
-             *  Reference:
-             *  https://en.wikipedia.org/wiki/True_range_multilateration#Three_Cartesian_dimensions,_three_measured_slant_ranges
-             *  Assume that all anchors and tag are at the same height
-             */
-            x = (float) (Math.pow(r1, 2) - Math.pow(r2, 2) + Math.pow(U, 2))
-                    / (2 * U);
-            y = (float) (Math.pow(r1, 2) - Math.pow(r3, 2) + (Math.pow(Vx, 2) + Math.pow(Vy, 2)) - 2 * Vx * x)
-                    / (2 * Vy);
+            double[][] positions = new double[][] {{x1, y1, z1}, {x2, y2, z2}, {x3, y3, z3}, {x4, y4, z4}};
+            double[] distances = new double[] {distance[0], distance[1], distance[2], distance[3]};
+            Log.d("test", "distance[0]: "+distance[0]+"distance[1]: "+distance[1]+"distance[2]: "+distance[2]+"distance[3]: "+distance[3]);
+
+            NonLinearLeastSquaresSolver solver = new NonLinearLeastSquaresSolver(
+                    new TrilaterationFunction(positions, distances), new LevenbergMarquardtOptimizer());
+            LeastSquaresOptimizer.Optimum optimum = solver.solve();
+
+            double[] centroid = optimum.getPoint().toArray();
+            x = (float) centroid[0];
+            y = (float) centroid[1];
+            Log.d("test", "centroid.length: "+centroid.length+", centroid[0]: "+centroid[0]+
+                    ", centroid[1]: "+centroid[1]+", centroid[2]: "+centroid[2]);
         }
         CollectionActivity.LOCATION_READY = true;
     }
@@ -478,16 +488,32 @@ public class UWBLocalizer {
         this.ID3 = ID3;
     }
 
-    public void setU(float u) {
-        U = u;
+    public void setID4(short ID4) {
+        this.ID4 = ID4;
     }
 
-    public void setVx(float vx) {
-        Vx = vx;
+    public void setPosition1(float x1, float y1, float z1) {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.z1 = z1;
     }
 
-    public void setVy(float vy) {
-        Vy = vy;
+    public void setPosition2(float x2, float y2, float z2) {
+        this.x2 = x2;
+        this.y2 = y2;
+        this.z2 = z2;
+    }
+
+    public void setPosition3(float x3, float y3, float z3) {
+        this.x3 = x3;
+        this.y3 = y3;
+        this.z3 = z3;
+    }
+
+    public void setPosition4(float x4, float y4, float z4) {
+        this.x4 = x4;
+        this.y4 = y4;
+        this.z4 = z4;
     }
 
     public class LocalizeTask extends AsyncTask {

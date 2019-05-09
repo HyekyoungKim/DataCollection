@@ -1,1 +1,1 @@
-include ':app', ':usbserial-6.0.5-release'
+include ':app', ':usbserial-6.0.5-release', ':trilateration-1.0.2'

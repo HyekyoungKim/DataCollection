@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('trilateration-1.0.2.jar'))

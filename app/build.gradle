@@ -26,6 +26,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.github.felHR85:UsbSerial:6.0.5'
+    implementation project(path: ':trilateration-1.0.2')
+    implementation 'com.lemmingapex.trilateration:trilateration:1.0.2'
 }
 
 android {

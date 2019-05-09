@@ -21,7 +21,37 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" at (0, 0)"/>
+            android:text=" at ("/>
+        <EditText
+            android:id="@+id/x1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="x1"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=", "/>
+        <EditText
+            android:id="@+id/y1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="y1"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=", "/>
+        <EditText
+            android:id="@+id/z1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="z1"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=")"/>
     </LinearLayout>
 
     <LinearLayout
@@ -42,7 +72,37 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" at (U, 0)"/>
+            android:text=" at ("/>
+        <EditText
+            android:id="@+id/x2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="x2"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=", "/>
+        <EditText
+            android:id="@+id/y2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="y2"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=", "/>
+        <EditText
+            android:id="@+id/z2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="z2"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=")"/>
     </LinearLayout>
 
     <LinearLayout
@@ -63,43 +123,88 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" at (Vx, Vy)"/>
+            android:text=" at ("/>
+        <EditText
+            android:id="@+id/x3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="x3"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=", "/>
+        <EditText
+            android:id="@+id/y3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="y3"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=", "/>
+        <EditText
+            android:id="@+id/z3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="z3"
+            android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=")"/>
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginLeft="10dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="U = "/>
+            android:text="Anchor ID "/>
         <EditText
-            android:id="@+id/u"
+            android:id="@+id/id4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="U"
+            android:hint="ID4"
+            android:inputType="number"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" at ("/>
+        <EditText
+            android:id="@+id/x4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="x4"
             android:inputType="numberSigned|numberDecimal"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=", Vx = "/>
+            android:text=", "/>
         <EditText
-            android:id="@+id/vx"
+            android:id="@+id/y4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Vx"
+            android:hint="y4"
             android:inputType="numberSigned|numberDecimal"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=", Vy = "/>
+            android:text=", "/>
         <EditText
-            android:id="@+id/vy"
+            android:id="@+id/z4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Vy"
+            android:hint="z4"
             android:inputType="numberSigned|numberDecimal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=")"/>
     </LinearLayout>
 
     <Button
@@ -110,10 +215,4 @@
         android:textAllCaps="false"
         android:layout_gravity="center"
         android:onClick="onClick"/>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/illustration"
-        android:layout_gravity="center"/>
 </LinearLayout>
